@@ -8,7 +8,6 @@ import java.io.Reader;
 import java.util.Collections;
 import java.util.List;
 
-// 1. Implementamos la interfaz
 public class CsvEntrenamientoRepositorio implements EntrenamientoRepositorio {
     private final String CSV_FILE = "workout_data.csv";
 
