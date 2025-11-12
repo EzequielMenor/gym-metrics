@@ -4,6 +4,7 @@ import com.ezequiel.logic.CalcularMetricasService;
 import com.ezequiel.model.Entrenamiento;
 import com.ezequiel.repository.CsvEntrenamientoRepositorio;
 import com.ezequiel.repository.EntrenamientoRepositorio;
+import com.ezequiel.repository.JdbcEntreneRepo;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 
@@ -15,8 +16,9 @@ public class MainController {
     private Label lblResultado;
 
     public void initialize() {
-        EntrenamientoRepositorio repo = new CsvEntrenamientoRepositorio();
+        EntrenamientoRepositorio repo = new JdbcEntreneRepo();
         List<Entrenamiento> entrenamientos = repo.obtenerTodos();
+
 
         if (!entrenamientos.isEmpty()) {
             CalcularMetricasService service = new CalcularMetricasService();

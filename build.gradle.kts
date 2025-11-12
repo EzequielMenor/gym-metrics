@@ -25,6 +25,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation("com.opencsv:opencsv:5.12.0")
+    implementation("org.postgresql:postgresql:42.7.3")
 }
 
 tasks.test {

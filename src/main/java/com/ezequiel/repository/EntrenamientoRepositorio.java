@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface EntrenamientoRepositorio {
     List<Entrenamiento> obtenerTodos();
+
+    void guardar(Entrenamiento entrenamiento);
 }

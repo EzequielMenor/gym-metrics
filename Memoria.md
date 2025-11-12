@@ -190,7 +190,7 @@ public class CalcularMetricasService {
 }
 ```
 
-### 1.5.2. Prueba de Integración Final (Fase 1)
+#### 1.5.2. Prueba de Integración Final (Fase 1)
 
 Finalmente, se modifica la clase Main.java (capa ui) para usar el nuevo CalculadoraMetricasService. Esto comprueba que todas las capas están conectadas y funcionan juntas: ui -> logic -> repository.
 
@@ -220,11 +220,11 @@ public class Main {
 }
 ```
 
-## 1.6. Fase 1.5: Migración a Interfaz Gráfica (JavaFX)
+### 1.6. Fase 1.5: Migración a Interfaz Gráfica (JavaFX)
 
 Una vez validado el "motor" (lógica de negocio y acceso a datos) en la consola, el siguiente paso es conectar este motor a una interfaz de usuario gráfica (GUI) con JavaFX, demostrando la flexibilidad de la arquitectura de 3 capas.
 
-### 1.6.1. Configuración de JavaFX en Gradle
+#### 1.6.1. Configuración de JavaFX en Gradle
 
 Para añadir JavaFX a un proyecto Gradle existente, se realizan dos modificaciones clave en el archivo `build.gradle.kts`:
 
@@ -253,7 +253,7 @@ application {
 ```
 Esto permite ejecutar la aplicación gráfica de forma robusta usando la tarea gradle run.
 
-### 1.6.2. Creación de la Vista (FXML) y el Lanzador (Application)
+#### 1.6.2. Creación de la Vista (FXML) y el Lanzador (Application)
 
 El patrón de JavaFX separa la "Vista" (lo que se ve) del "Lanzador" (el código que la arranca).
 
@@ -284,7 +284,7 @@ public class MainFX extends Application {
     }
 }
 ```
-### 1.6.3. El Controlador (El "Cerebro" de la UI)
+#### 1.6.3. El Controlador (El "Cerebro" de la UI)
 
 El MainController.java es el "puente" entre la Vista (FXML) y nuestro "motor" (la capa logic).
 
@@ -324,6 +324,130 @@ public class MainController {
     }
 }
 ```
-### 1.6.4. Conclusión de la Fase 1.5
+#### 1.6.4. Conclusión de la Fase 1.5
 
 La aplicación ahora arranca una interfaz gráfica que carga los datos del CSV y muestra la métrica calculada. Esto valida la arquitectura de 3 capas y demuestra que la lógica de negocio (logic) y el acceso a datos (repository) son completamente independientes de la capa de presentación (ui), permitiendo cambiar de consola a GUI sin modificar el "motor".
+
+## 2. Fase 2: Migración a Base de Datos (PostgreSQL)
+
+El objetivo de la Fase 2 es reemplazar la fuente de datos efímera (el archivo CSV) por una base de datos persistente y robusta (PostgreSQL), validando la arquitectura de 3 capas.
+
+### 2.1. Entorno de Base de Datos (Docker y DBeaver)
+
+Se utiliza un stack profesional para la base de datos:
+
+* **Docker:** Se configura un `docker-compose.yml` para levantar un contenedor de `postgres:latest`.
+* **DBeaver:** Se utiliza como cliente de BBDD para conectarse, crear la base de datos `gym_metrics_db` y ejecutar scripts SQL.
+
+### 2.2. Diseño del Esquema (CREATE TABLE)
+
+Se diseña un script SQL para crear la tabla `entrenamientos`. El diseño mapea los campos del POJO `Entrenamiento.java` a tipos de datos SQL, usando `TIMESTAMP` para las fechas (permitiendo consultas de rango) y `SERIAL PRIMARY KEY` para un ID único.
+
+```sql
+-- Fichero: DBeaver (Script de Creación)
+DROP TABLE IF EXISTS entrenamientos;
+
+CREATE TABLE entrenamientos (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255),
+    start_time TIMESTAMP,
+    end_time TIMESTAMP,
+    exercise_title VARCHAR(255),
+    set_type VARCHAR(50),
+    weight_kg REAL,
+    reps INTEGER,
+    distance_km REAL,
+    duration_seconds REAL,
+    rpe REAL,
+    description TEXT,
+    exercise_notes TEXT
+);
+```
+
+### 2.3. Implementación del Repositorio JDBC
+
+Se añade el "driver" de PostgreSQL al ```build.gradle.kts``` ```(org.postgresql:postgresql:42.7.3).```
+
+Siguiendo el Patrón Repositorio, se crea una **nueva implementación** de la interfaz ```EntrenamientoRepositorio``` llamada ```JdbcEntreneRepo.java```.
+
+#### 2.3.1. Conexión y Método ```obtenerTodos()```
+
+Se implementa ```obtenerTodos()``` usando JDBC (```java.sql.*```). Se utiliza un ```try-with-resources``` para gestionar la ```Connection```, ```Statement``` y ```ResultSet```, y se mapean las columnas de la BBDD de vuelta al POJO ```Entrenamiento```.
+```java
+// Fichero: repository/JdbcEntreneRepo.java (extracto)
+@Override
+public List<Entrenamiento> obtenerTodos() {
+    List<Entrenamiento> entrenamientos = new ArrayList<>();
+    String sql = "SELECT * FROM entrenamientos";
+    try(Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
+        Statement st = conn.createStatement();
+        ResultSet rs = st.executeQuery(sql)) {
+        
+        while (rs.next()) {
+            Entrenamiento ent = new Entrenamiento();
+            // ... (mapeo de rs.getString(...) a ent.set...) ...
+            ent.setExerciseTitle(rs.getString("exercise_title"));
+            ent.setWeightKg(rs.getDouble("weight_kg"));
+            // ...
+            entrenamientos.add(ent);
+        }
+    } catch (SQLException e ){
+        e.printStackTrace();
+    }
+    return entrenamientos;
+}
+```
+
+### 2.3.2. Método `guardar()` y Parseo de Fechas
+
+Se implementa `guardar(Entrenamiento e)` usando un `PreparedStatement` para insertar datos de forma segura (evitando Inyección SQL).
+
+El mayor desafío fue parsear los `String` de fecha del CSV (ej. "21 ago 2025") al tipo `TIMESTAMP` de PostgreSQL. Se creó una función `convertToTimestamp` personalizada que usa `SimpleDateFormat` y `DateFormatSymbols` para manejar el formato "Spanglish" del CSV (meses en español, excepto "sep").
+
+```java
+// Fichero: repository/JdbcEntreneRepo.java (extracto)
+@Override
+public void guardar(Entrenamiento entrenamiento) {
+    String sql = "INSERT INTO entrenamientos (start_time, end_time, set_type, weight_kg, reps, exercise_title) VALUES (?, ?, ?, ?, ?, ?)";
+    
+    try(Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
+        PreparedStatement ps = conn.prepareStatement(sql)) {
+        
+        // Se usa el 'helper' para convertir el String a un objeto Timestamp
+        ps.setTimestamp(1, convertToTimestamp(entrenamiento.getStartTime()));
+        ps.setTimestamp(2, convertToTimestamp(entrenamiento.getEndTime()));
+        ps.setString(3, entrenamiento.getSetType());
+        ps.setDouble(4, entrenamiento.getWeightKg());
+        ps.setInt(5, entrenamiento.getReps());
+        ps.setString(6, entrenamiento.getExerciseTitle());
+        ps.executeUpdate();
+        
+    } catch (SQLException e ){
+        e.printStackTrace();
+    }
+}
+```
+### 2.4. Migración de Datos ("Seeding")
+
+Se crea un script de un solo uso, `MigracionDatos.java`. Este script utiliza **ambos** repositorios:
+
+* Instancia `CsvEntrenamientoRepositorio` como `repoFuente`.
+* Instancia `JdbcEntreneRepo` como `repoDestino`.
+* Llama a `repoFuente.obtenerTodos()` para leer los 2106 registros del CSV a la memoria.
+* Recorre la lista con un `for-each` y llama a `repoDestino.guardar(ent)` por cada registro, insertándolos en PostgreSQL.
+* Antes de la ejecución final, se limpia la BBDD con `TRUNCATE TABLE entrenamientos;` para evitar duplicados.
+
+### 2.5. Prueba Final ("El Cambiazo")
+
+La prueba final valida la arquitectura. En la capa de UI (`MainController.java`), se cambia **una sola línea**:
+
+```java
+// Se comenta la línea de Fase 1: 
+// EntrenamientoRepositorio repo = new CsvEntrenamientoRepositorio();
+
+// Se activa la línea de Fase 2: 
+EntrenamientoRepositorio repo = new JdbcEntreneRepo();
+```
+Al ejecutar la aplicación JavaFX (gradle run), esta se conecta a la BBDD (ya poblada) y muestra el cálculo de "Peso máximo" (ej. 47.5 kg) en la ventana, demostrando que la migración ha sido un éxito y la arquitectura de 3 capas funciona.
+
+

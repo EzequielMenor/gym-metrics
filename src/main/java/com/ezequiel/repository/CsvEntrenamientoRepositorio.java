@@ -25,4 +25,9 @@ public class CsvEntrenamientoRepositorio implements EntrenamientoRepositorio {
 
         return Collections.emptyList();
     }
+
+    @Override
+    public void guardar(Entrenamiento entrenamiento) {
+        System.err.println("No implementado");
+    }
 }
