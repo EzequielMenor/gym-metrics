@@ -190,7 +190,7 @@ public class CalcularMetricasService {
 }
 ```
 
-1.5.2. Prueba de Integración Final (Fase 1)
+### 1.5.2. Prueba de Integración Final (Fase 1)
 
 Finalmente, se modifica la clase Main.java (capa ui) para usar el nuevo CalculadoraMetricasService. Esto comprueba que todas las capas están conectadas y funcionan juntas: ui -> logic -> repository.
 
@@ -219,3 +219,111 @@ public class Main {
     }
 }
 ```
+
+## 1.6. Fase 1.5: Migración a Interfaz Gráfica (JavaFX)
+
+Una vez validado el "motor" (lógica de negocio y acceso a datos) en la consola, el siguiente paso es conectar este motor a una interfaz de usuario gráfica (GUI) con JavaFX, demostrando la flexibilidad de la arquitectura de 3 capas.
+
+### 1.6.1. Configuración de JavaFX en Gradle
+
+Para añadir JavaFX a un proyecto Gradle existente, se realizan dos modificaciones clave en el archivo `build.gradle.kts`:
+
+1.  Se añaden los plugins `application` y `org.openjfx.javafxplugin`.
+2.  Se configuran los módulos de JavaFX (`controls`, `fxml`) y se especifica la `mainClass` de la aplicación.
+
+```kotlin
+// Fichero: build.gradle.kts (extracto)
+
+plugins {
+    id("java")
+    id("application") // <-- Añadido
+    id("org.openjfx.javafxplugin") version "0.1.0" // <-- Añadido
+}
+
+// ...
+
+javafx {
+    version = "17"
+    modules("javafx.controls", "javafx.fxml")
+}
+
+application {
+    mainClass.set("com.ezequiel.ui.MainFX") // <-- Le dice a Gradle cómo ejecutar la app
+}
+```
+Esto permite ejecutar la aplicación gráfica de forma robusta usando la tarea gradle run.
+
+### 1.6.2. Creación de la Vista (FXML) y el Lanzador (Application)
+
+El patrón de JavaFX separa la "Vista" (lo que se ve) del "Lanzador" (el código que la arranca).
+
+1. Vista (MainView.fxml): Se crea el archivo FXML en src/main/resources/. Se define la "cara" de la aplicación y se asigna un fx:id a los componentes que necesitarán ser controlados (como el Label de resultado).
+```XML
+<AnchorPane xmlns:fx="[http://javafx.com/fxml](http://javafx.com/fxml)"
+            fx:controller="com.ezequiel.ui.MainController">
+
+    <Label fx:id="lblResultado"></Label>
+
+</AnchorPane>
+```
+2. Lanzador (MainFX.java): Se crea una nueva clase en la capa ui que hereda de javafx.application.Application. Su única misión es cargar el FXML y mostrar la ventana (el Stage).
+```java
+// Fichero: src/main/java/com.ezequiel/ui/MainFX.java
+public class MainFX extends Application {
+    @Override
+    public void start(Stage primaryStage) throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/MainView.fxml"));
+        Parent root = loader.load();
+        primaryStage.setTitle("Gym Metrics");
+        primaryStage.setScene(new javafx.scene.Scene(root));
+        primaryStage.show();
+    }
+
+    public static void main(String[] args) {
+        launch(args); // Lanza la aplicación JavaFX
+    }
+}
+```
+### 1.6.3. El Controlador (El "Cerebro" de la UI)
+
+El MainController.java es el "puente" entre la Vista (FXML) y nuestro "motor" (la capa logic).
+
+1. **Inyección (@FXML)**: Se usa la anotación @FXML para "inyectar" el Label del FXML en una variable Java.
+
+2. **Inicialización (```initialize()```)**: Se usa el método initialize(), que JavaFX llama automáticamente después de la inyección. Dentro de este método, se reutiliza exactamente la misma lógica de negocio que se probó en la consola (Fase 1).
+
+3. **Resultado**: En lugar de System.out.println, el resultado del servicio se asigna al Label usando .setText().
+
+```java
+// Fichero: src/main/java/com/ezequiel/ui/MainController.java
+package com.ezequiel.ui;
+
+// ... (imports de logic, repository, model y javafx)
+
+public class MainController {
+
+    @FXML // 1. Inyecta el Label desde el FXML
+    private Label lblResultado;
+
+    @FXML // 2. JavaFX llama a este método automáticamente
+    public void initialize() {
+        // --- SE REUTILIZA EL MISMO MOTOR ---
+        EntrenamientoRepositorio repo = new CsvEntrenamientoRepositorio();
+        List<Entrenamiento> entrenamientos = repo.obtenerTodos();
+
+        if (!entrenamientos.isEmpty()) {
+            CalcularMetricasService service = new CalcularMetricasService();
+            String ejercicioBuscado = "Press de Banca (Barra)";
+            double maxPeso = service.encontrarPesoMaximo(entrenamientos, ejercicioBuscado);
+
+            // 3. El resultado se muestra en la GUI, no en la consola
+            lblResultado.setText("Peso máximo de " + ejercicioBuscado + ": " + maxPeso + " kg");
+        } else {
+            lblResultado.setText("No se encontraron entrenamientos.");
+        }
+    }
+}
+```
+### 1.6.4. Conclusión de la Fase 1.5
+
+La aplicación ahora arranca una interfaz gráfica que carga los datos del CSV y muestra la métrica calculada. Esto valida la arquitectura de 3 capas y demuestra que la lógica de negocio (logic) y el acceso a datos (repository) son completamente independientes de la capa de presentación (ui), permitiendo cambiar de consola a GUI sin modificar el "motor".
