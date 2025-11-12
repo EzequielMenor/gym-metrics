@@ -451,3 +451,65 @@ EntrenamientoRepositorio repo = new JdbcEntreneRepo();
 Al ejecutar la aplicación JavaFX (gradle run), esta se conecta a la BBDD (ya poblada) y muestra el cálculo de "Peso máximo" (ej. 47.5 kg) en la ventana, demostrando que la migración ha sido un éxito y la arquitectura de 3 capas funciona.
 
 
+### 2.6. Interacción Dinámica y Preparación para Gráficos
+
+El objetivo de este paso es hacer que la interfaz sea dinámica, permitiendo al usuario seleccionar el ejercicio a analizar y preparando el controlador para la visualización gráfica.
+
+#### 2.6.1. Extracción de Datos Únicos (Capa logic)
+
+Para poblar el desplegable, se añade un método al servicio para obtener la lista de ejercicios disponibles en la base de datos sin duplicados.
+
+```java
+// Fichero: logic/CalculadoraMetricasService.java (extracto)
+public List<String> obtenerEjerciciosUnicos(List<Entrenamiento> entrenamientos) {
+    return entrenamientos.stream()
+            .map(Entrenamiento::getExerciseTitle)
+            .distinct() // Elimina duplicados
+            .collect(Collectors.toList());
+}
+```
+
+#### 2.6.2. Implementación de la Interfaz (JavaFX)
+
+Se implementa la conexión de la vista (FXML) con la lógica (Controlador), completando el flujo interactivo:
+
+* **Vista (`MainView.fxml`):** Se añade el componente `ComboBox` con el `fx:id="cmbEjercicios"`. El evento `onAction` se conecta al método `actualizarMetricas` del controlador.
+* **Refactorización del Controlador:** Las variables `entrenamientos` y `servicio` se mueven a campos de clase (`private`), asegurando que todos los métodos (incluyendo el de evento) tengan acceso a los datos de la base de datos.
+
+```java
+// Fichero: ui/MainController.java (extracto)
+public class MainController {
+    
+    @FXML private ComboBox<String> cmbEjercicios;
+    
+    // Convertidos a campos de clase para persistir los datos
+    private CalcularMetricasService service;
+    private List<Entrenamiento> entrenamientos; 
+
+    @FXML
+    public void initialize() {
+        // ... (Carga de datos en los campos 'entrenamientos' y 'service') ...
+        
+        // Poblar el ComboBox con ejercicios únicos
+        List<String> ejerciciosUnicos = service.obtenerEjerciciosUnicos(this.entrenamientos);
+        ObservableList<String> observableList = FXCollections.observableArrayList(ejerciciosUnicos);
+        cmbEjercicios.setItems(observableList);
+        
+        // Seleccionar el primer elemento y lanzar la primera actualización
+        if (!observableList.isEmpty()) {
+            cmbEjercicios.setValue(observableList.get(0));
+            actualizarMetricas(); // Llama al método de evento
+        }
+    }
+
+    // Método de evento conectado al ComboBox (onAction)
+    public void actualizarMetricas() {
+        String ejercicioSeleccionado = cmbEjercicios.getValue();
+
+        if (ejercicioSeleccionado != null && this.entrenamientos != null) {
+            double maxPeso = this.service.encontrarPesoMaximo(this.entrenamientos, ejercicioSeleccionado);
+            lblResultado.setText("Peso máximo de " + ejercicioSeleccionado + " : " + maxPeso + " kg");
+        }
+    }
+}
+```
