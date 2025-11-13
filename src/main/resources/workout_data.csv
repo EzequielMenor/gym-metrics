@@ -1,4 +1,16 @@
 "title","start_time","end_time","description","exercise_title","superset_id","exercise_notes","set_index","set_type","weight_kg","reps","distance_km","duration_seconds","rpe"
+"Pierna B","13 nov 2025, 06:54","13 nov 2025, 07:27","Mucho tiempo sin hacer esta rutina","Peso Muerto Rumano (Mancuerna)",,"",0,"normal",12,12,,,8.5
+"Pierna B","13 nov 2025, 06:54","13 nov 2025, 07:27","Mucho tiempo sin hacer esta rutina","Peso Muerto Rumano (Mancuerna)",,"",1,"normal",14,12,,,8.5
+"Pierna B","13 nov 2025, 06:54","13 nov 2025, 07:27","Mucho tiempo sin hacer esta rutina","Peso Muerto Rumano (Mancuerna)",,"",2,"normal",14,10,,,8.5
+"Pierna B","13 nov 2025, 06:54","13 nov 2025, 07:27","Mucho tiempo sin hacer esta rutina","Empuje de Caderas (Barra)",,"Ojala se destruya este ejercucio",0,"normal",5,10,,,8.5
+"Pierna B","13 nov 2025, 06:54","13 nov 2025, 07:27","Mucho tiempo sin hacer esta rutina","Empuje de Caderas (Barra)",,"Ojala se destruya este ejercucio",1,"normal",7.5,12,,,9
+"Pierna B","13 nov 2025, 06:54","13 nov 2025, 07:27","Mucho tiempo sin hacer esta rutina","Empuje de Caderas (Barra)",,"Ojala se destruya este ejercucio",2,"normal",5,8,,,8.5
+"Pierna B","13 nov 2025, 06:54","13 nov 2025, 07:27","Mucho tiempo sin hacer esta rutina","Zancada (Mancuerna)",,"",0,"normal",8,10,,,9.5
+"Pierna B","13 nov 2025, 06:54","13 nov 2025, 07:27","Mucho tiempo sin hacer esta rutina","Zancada (Mancuerna)",,"",1,"normal",8,7,,,9.5
+"Pierna B","13 nov 2025, 06:54","13 nov 2025, 07:27","Mucho tiempo sin hacer esta rutina","Curl de Pierna Sentado",,"",0,"normal",25,15,,,7.5
+"Pierna B","13 nov 2025, 06:54","13 nov 2025, 07:27","Mucho tiempo sin hacer esta rutina","Curl de Pierna Sentado",,"",1,"normal",32,12,,,8.5
+"Pierna B","13 nov 2025, 06:54","13 nov 2025, 07:27","Mucho tiempo sin hacer esta rutina","Rodillas al Pecho en Barras Paralelas",,"",0,"normal",,15,,,8.5
+"Pierna B","13 nov 2025, 06:54","13 nov 2025, 07:27","Mucho tiempo sin hacer esta rutina","Rodillas al Pecho en Barras Paralelas",,"",1,"normal",,12,,,9
 "Torso A","12 nov 2025, 06:41","12 nov 2025, 07:33","Bastante bien, bastante consistencia y bastante esfuerzo,","Press de Banca (Barra)",,"",0,"warmup",20,15,,,
 "Torso A","12 nov 2025, 06:41","12 nov 2025, 07:33","Bastante bien, bastante consistencia y bastante esfuerzo,","Press de Banca (Barra)",,"",1,"normal",35,12,,,8.5
 "Torso A","12 nov 2025, 06:41","12 nov 2025, 07:33","Bastante bien, bastante consistencia y bastante esfuerzo,","Press de Banca (Barra)",,"",2,"normal",37.5,10,,,9.5
