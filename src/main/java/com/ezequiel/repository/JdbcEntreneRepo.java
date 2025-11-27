@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class JdbcEntreneRepo implements EntrenamientoRepositorio{
+public class JdbcEntreneRepo implements EntrenamientoRepositorio {
     private static final String DB_URL = "jdbc:postgresql://localhost:5432/gym_metric_db";
     private static final String DB_USER = "root";
     private static final String DB_PASS = "test";
@@ -32,28 +32,27 @@ public class JdbcEntreneRepo implements EntrenamientoRepositorio{
 
             java.util.Date utilDate = formatter.parse(fechaString);
             return new Timestamp(utilDate.getTime());
-        }catch (ParseException e) {
+        } catch (ParseException e) {
             System.err.println("Error al parsear la fecha: " + fechaString + " - " + e.getMessage());
             return null;
         }
     }
 
-
     @Override
     public List<Entrenamiento> obtenerTodos() {
         List<Entrenamiento> entrenamientos = new ArrayList<>();
         String sql = "SELECT * FROM entrenamientos";
-        try(Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
-            Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery(sql)) {
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
+                Statement st = conn.createStatement();
+                ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
                 Entrenamiento ent = new Entrenamiento();
 
                 Timestamp ts = rs.getTimestamp("start_time");
-                ent.setStartTime( (ts != null) ? ts.toString() : null );
+                ent.setStartTime((ts != null) ? ts.toString() : null);
 
                 Timestamp tsEnd = rs.getTimestamp("end_time");
-                ent.setEndTime( (tsEnd != null) ? tsEnd.toString() : null );
+                ent.setEndTime((tsEnd != null) ? tsEnd.toString() : null);
 
                 ent.setTitle(rs.getString("title"));
                 ent.setDescription(rs.getString("description"));
@@ -71,13 +70,12 @@ public class JdbcEntreneRepo implements EntrenamientoRepositorio{
 
                 entrenamientos.add(ent);
             }
-        }catch (SQLException e ){
+        } catch (SQLException e) {
             System.err.println("Error al conectar o consultar la BBDD: " + e.getMessage());
             e.printStackTrace();
         }
         return entrenamientos;
     }
-
 
     @Override
     public void guardar(Entrenamiento entrenamiento) {
@@ -87,8 +85,8 @@ public class JdbcEntreneRepo implements EntrenamientoRepositorio{
                 "reps, distance_km, duration_seconds, rpe" +
                 ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try(Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
-            PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
+                PreparedStatement ps = conn.prepareStatement(sql)) {
             // 1. title (VARCHAR)
             ps.setString(1, entrenamiento.getTitle());
 
@@ -132,7 +130,7 @@ public class JdbcEntreneRepo implements EntrenamientoRepositorio{
             ps.setDouble(14, entrenamiento.getRpe());
 
             ps.executeUpdate();
-        }catch (SQLException e ){
+        } catch (SQLException e) {
             System.err.println("Error al guardar el entrenamiento: " + e.getMessage());
             e.printStackTrace();
         }

@@ -10,38 +10,45 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="778.0" prefWidth="1205.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.ezequiel.ui.MainController">
-   <ComboBox fx:id="cmbEjercicios" layoutX="468.0" layoutY="173.0" onAction="#actualizarMetricas" prefHeight="25.0" prefWidth="269.0" promptText="Ejercicio" />
-   <Label layoutX="474.0" layoutY="75.0" text="GYM METRICS">
-      <font>
-         <Font name="System Bold Italic" size="40.0" />
-      </font></Label>
-   <LineChart fx:id="chartProgreso" layoutX="272.0" layoutY="227.0" prefHeight="333.0" prefWidth="661.0">
-     <xAxis>
-       <CategoryAxis fx:id="ejeXFechas" side="BOTTOM" />
-     </xAxis>
-     <yAxis>
-       <NumberAxis fx:id="ejeYPeso" side="LEFT" />
-     </yAxis>
-   </LineChart>
-   <BorderPane prefHeight="200.0" prefWidth="200.0" />
-   <VBox layoutX="1022.0" layoutY="277.0" prefHeight="225.0" prefWidth="160.0">
-      <children>
-         <Label prefWidth="156.0" text="Récord de Peso Histórico">
-            <font>
-               <Font name="System Bold Italic" size="13.0" />
-            </font></Label>
-         <Label fx:id="lblMaxPeso" text="Label" />
-         <Label text="1RM Estimado">
-            <font>
-               <Font name="System Bold Italic" size="13.0" />
-            </font></Label>
-         <Label fx:id="lblEst1RM" text="Label" />
-         <Label fx:id="lblMaxPeso2" text="Mejor Set por Volumen">
-            <font>
-               <Font name="System Bold Italic" size="13.0" />
-            </font></Label>
-         <Label fx:id="lblMaxVolumenSet" text="Label" />
-      </children>
-   </VBox>
+<AnchorPane prefHeight="778.0" prefWidth="1205.0" xmlns="http://javafx.com/javafx/21.0.1"
+    xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.ezequiel.ui.MainController">
+    <ComboBox fx:id="cmbEjercicios" layoutX="468.0" layoutY="173.0" onAction="#actualizarMetricas"
+        prefHeight="25.0" prefWidth="269.0" promptText="Ejercicio" />
+    <Label layoutX="474.0" layoutY="75.0" text="GYM METRICS">
+        <font>
+            <Font name="System Bold Italic" size="40.0" />
+        </font>
+    </Label>
+    <LineChart fx:id="chartProgreso" layoutX="272.0" layoutY="227.0" prefHeight="333.0"
+        prefWidth="661.0">
+        <xAxis>
+            <CategoryAxis fx:id="ejeXFechas" side="BOTTOM" />
+        </xAxis>
+        <yAxis>
+            <NumberAxis fx:id="ejeYPeso" side="LEFT" />
+        </yAxis>
+    </LineChart>
+    <BorderPane prefHeight="200.0" prefWidth="200.0" />
+    <VBox layoutX="1022.0" layoutY="277.0" prefHeight="225.0" prefWidth="160.0">
+        <children>
+            <Label prefWidth="156.0" text="Récord de Peso Histórico">
+                <font>
+                    <Font name="System Bold Italic" size="13.0" />
+                </font>
+            </Label>
+            <Label fx:id="lblMaxPeso" text="Label" />
+            <Label text="1RM Estimado">
+                <font>
+                    <Font name="System Bold Italic" size="13.0" />
+                </font>
+            </Label>
+            <Label fx:id="lblEst1RM" text="Label" />
+            <Label fx:id="lblMaxPeso2" text="Mejor Set por Volumen">
+                <font>
+                    <Font name="System Bold Italic" size="13.0" />
+                </font>
+            </Label>
+            <Label fx:id="lblMaxVolumenSet" text="Label" />
+        </children>
+    </VBox>
 </AnchorPane>

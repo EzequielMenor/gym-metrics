@@ -39,7 +39,6 @@ public class MainController {
     @FXML
     private Label lblMaxVolumenSet;
 
-
     List<Entrenamiento> entrenamientos;
     CalcularMetricasService service;
 
@@ -58,9 +57,10 @@ public class MainController {
         }
     }
 
-    public void actualizarMetricas(){
+    public void actualizarMetricas() {
         String ejercicioSeleccionado = cmbEjercicios.getValue();
-        if(ejercicioSeleccionado == null) return;
+        if (ejercicioSeleccionado == null)
+            return;
 
         Map<String, Double> datosProgreso = service.getEjercicioPorFecha(entrenamientos, ejercicioSeleccionado);
 
@@ -78,7 +78,7 @@ public class MainController {
             try {
                 Date date = parser.parse(fechaFea);
                 fechaBonita = formatter.format(date);
-            }catch (ParseException e) {
+            } catch (ParseException e) {
                 fechaBonita = fechaFea;
                 e.printStackTrace();
             }
