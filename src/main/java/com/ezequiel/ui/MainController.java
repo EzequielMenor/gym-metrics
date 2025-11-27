@@ -2,12 +2,10 @@ package com.ezequiel.ui;
 
 import com.ezequiel.logic.CalcularMetricasService;
 import com.ezequiel.model.Entrenamiento;
-import com.ezequiel.repository.CsvEntrenamientoRepositorio;
 import com.ezequiel.repository.EntrenamientoRepositorio;
 import com.ezequiel.repository.JdbcEntreneRepo;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
