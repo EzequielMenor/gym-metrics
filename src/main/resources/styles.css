@@ -1,0 +1,56 @@
+/* Fichero: src/main/resources/styles.css */
+
+/* 1. Estilo General: Aplica a la raíz (AnchorPane) */
+.root {
+    -fx-background-color: #F8F8F8; /* Un fondo gris muy claro */
+    -fx-font-family: "Arial", sans-serif; /* Tipografía limpia */
+    -fx-font-size: 12px;
+}
+
+/* 2. Estilo para el Título Principal (GYM METRICS) */
+/* Usamos la clase 'main-title' que se coló en el XML anterior, es un buen nombre */
+.main-title {
+    -fx-font-size: 40px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #0077B6; /* Azul profundo para el título */
+}
+
+/* 3. Estilo para los Encabezados de las Métricas (ej. "1RM Estimado") */
+.header-label {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #555555; /* Gris oscuro para el subtítulo */
+    -fx-padding: 15px 0 5px 0; /* Espaciado arriba y abajo */
+    -fx-border-width: 0 0 1px 0; /* Línea separadora */
+    -fx-border-color: #CCCCCC;
+}
+
+/* 4. Estilo para los Valores de las Métricas (lblMaxPeso, lblEst1RM, etc.) */
+#lblMaxPeso, #lblEst1RM, #lblMaxVolumenSet {
+    -fx-font-size: 20px;
+    -fx-font-weight: extra-bold;
+    -fx-text-fill: #E63946; /* Un color rojo/coral para destacar el valor numérico */
+}
+
+/* 5. Ajuste visual para el ComboBox */
+.combo-box {
+    -fx-font-size: 14px;
+}
+
+/* 6. Estilo del Gráfico (para hacerlo más plano y limpio) */
+.chart {
+    -fx-padding: 10px;
+    -fx-border-color: #DDDDDD;
+    -fx-border-width: 1px;
+    -fx-background-color: #FFFFFF;
+}
+.chart-plot-background {
+    -fx-background-color: transparent;
+}
+.chart-horizontal-grid-lines {
+    -fx-stroke: #E0E0E0;
+}
+.chart-series-line {
+    -fx-stroke-width: 2px;
+    -fx-stroke: #1D3557; /* Un color azul oscuro para la línea de progreso */
+}
