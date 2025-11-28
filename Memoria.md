@@ -10,9 +10,9 @@ El requisito de arquitectura más importante es que el proyecto sea **escalable*
 
 ### 1.2. Configuración del Entorno
 
-* **IDE:** IntelliJ IDEA
-* **Gestor de Proyecto:** Gradle
-* **Dependencia Clave:** Se añade `OpenCSV` al archivo `build.gradle` para el parseo de archivos CSV a objetos Java.
+- **IDE:** IntelliJ IDEA
+- **Gestor de Proyecto:** Gradle
+- **Dependencia Clave:** Se añade `OpenCSV` al archivo `build.gradle` para el parseo de archivos CSV a objetos Java.
 
 ```groovy
 // Fichero: build.gradle
@@ -22,6 +22,7 @@ dependencies {
     // ...
 }
 ```
+
 ### 1.3. Arquitectura: Separación de Responsabilidades
 
 Para lograr la escalabilidad, el proyecto se divide en paquetes que separan las responsabilidades:
@@ -83,6 +84,7 @@ public interface EntrenamientoRepositorio {
     List<Entrenamiento> obtenerTodos();
 }
 ```
+
 2. La Implementación (Fase 1): Se crea la clase CsvEntrenamientoRepositorio que implementa la interfaz. Esta clase lee el archivo workout_data.csv (ubicado en src/main/resources) y usa CsvToBeanBuilder de OpenCSV para convertirlo en una List<Entrenamiento>.
 
 ```Java
@@ -104,7 +106,7 @@ public class CsvEntrenamientoRepositorio implements EntrenamientoRepositorio {
     public List<Entrenamiento> obtenerTodos() {
         try (Reader reader = new InputStreamReader(
                 this.getClass().getClassLoader().getResourceAsStream(CSV_FILE))) {
-            
+
             return new CsvToBeanBuilder<Entrenamiento>(reader)
                     .withType(Entrenamiento.class)
                     .build()
@@ -176,7 +178,7 @@ import java.util.List;
 public class CalcularMetricasService {
 
     public double encontrarPesoMaximo(List<Entrenamiento> entrenamientoList, String nombreEjercicio) {
-        
+
         return entrenamientoList.stream()
                 // 1. Filtra por el nombre del ejercicio
                 .filter(e -> e.getExerciseTitle().equalsIgnoreCase(nombreEjercicio))
@@ -194,7 +196,7 @@ public class CalcularMetricasService {
 
 Finalmente, se modifica la clase Main.java (capa ui) para usar el nuevo CalculadoraMetricasService. Esto comprueba que todas las capas están conectadas y funcionan juntas: ui -> logic -> repository.
 
-```java 
+```java
 // Fichero: src/main/java/com/ezequiel/ui/Main.java
 public class Main {
     public static void main(String[] args) {
@@ -205,14 +207,14 @@ public class Main {
         if (!entrenamientos.isEmpty()) {
             // Se instancia la capa de lógica
             CalcularMetricasService servicio = new CalcularMetricasService();
-            
+
             // Se pide el cálculo
             String ejercicioBuscado = "Press de Banca (Barra)";
             double maxPeso = servicio.encontrarPesoMaximo(entrenamientos, ejercicioBuscado);
-            
+
             // Se imprime el resultado
             System.out.println("Peso máximo en " + ejercicioBuscado + ": " + maxPeso + " kg");
-            
+
         } else {
             System.out.println("No se encontraron entrenamientos.");
         }
@@ -251,6 +253,7 @@ application {
     mainClass.set("com.ezequiel.ui.MainFX") // <-- Le dice a Gradle cómo ejecutar la app
 }
 ```
+
 Esto permite ejecutar la aplicación gráfica de forma robusta usando la tarea gradle run.
 
 #### 1.6.2. Creación de la Vista (FXML) y el Lanzador (Application)
@@ -258,6 +261,7 @@ Esto permite ejecutar la aplicación gráfica de forma robusta usando la tarea g
 El patrón de JavaFX separa la "Vista" (lo que se ve) del "Lanzador" (el código que la arranca).
 
 1. Vista (MainView.fxml): Se crea el archivo FXML en src/main/resources/. Se define la "cara" de la aplicación y se asigna un fx:id a los componentes que necesitarán ser controlados (como el Label de resultado).
+
 ```XML
 <AnchorPane xmlns:fx="[http://javafx.com/fxml](http://javafx.com/fxml)"
             fx:controller="com.ezequiel.ui.MainController">
@@ -266,7 +270,9 @@ El patrón de JavaFX separa la "Vista" (lo que se ve) del "Lanzador" (el código
 
 </AnchorPane>
 ```
+
 2. Lanzador (MainFX.java): Se crea una nueva clase en la capa ui que hereda de javafx.application.Application. Su única misión es cargar el FXML y mostrar la ventana (el Stage).
+
 ```java
 // Fichero: src/main/java/com.ezequiel/ui/MainFX.java
 public class MainFX extends Application {
@@ -284,13 +290,14 @@ public class MainFX extends Application {
     }
 }
 ```
+
 #### 1.6.3. El Controlador (El "Cerebro" de la UI)
 
 El MainController.java es el "puente" entre la Vista (FXML) y nuestro "motor" (la capa logic).
 
 1. **Inyección (@FXML)**: Se usa la anotación @FXML para "inyectar" el Label del FXML en una variable Java.
 
-2. **Inicialización (```initialize()```)**: Se usa el método initialize(), que JavaFX llama automáticamente después de la inyección. Dentro de este método, se reutiliza exactamente la misma lógica de negocio que se probó en la consola (Fase 1).
+2. **Inicialización (`initialize()`)**: Se usa el método initialize(), que JavaFX llama automáticamente después de la inyección. Dentro de este método, se reutiliza exactamente la misma lógica de negocio que se probó en la consola (Fase 1).
 
 3. **Resultado**: En lugar de System.out.println, el resultado del servicio se asigna al Label usando .setText().
 
@@ -324,6 +331,7 @@ public class MainController {
     }
 }
 ```
+
 #### 1.6.4. Conclusión de la Fase 1.5
 
 La aplicación ahora arranca una interfaz gráfica que carga los datos del CSV y muestra la métrica calculada. Esto valida la arquitectura de 3 capas y demuestra que la lógica de negocio (logic) y el acceso a datos (repository) son completamente independientes de la capa de presentación (ui), permitiendo cambiar de consola a GUI sin modificar el "motor".
@@ -336,8 +344,8 @@ El objetivo de la Fase 2 es reemplazar la fuente de datos efímera (el archivo C
 
 Se utiliza un stack profesional para la base de datos:
 
-* **Docker:** Se configura un `docker-compose.yml` para levantar un contenedor de `postgres:latest`.
-* **DBeaver:** Se utiliza como cliente de BBDD para conectarse, crear la base de datos `gym_metrics_db` y ejecutar scripts SQL.
+- **Docker:** Se configura un `docker-compose.yml` para levantar un contenedor de `postgres:latest`.
+- **DBeaver:** Se utiliza como cliente de BBDD para conectarse, crear la base de datos `gym_metrics_db` y ejecutar scripts SQL.
 
 ### 2.2. Diseño del Esquema (CREATE TABLE)
 
@@ -366,13 +374,14 @@ CREATE TABLE entrenamientos (
 
 ### 2.3. Implementación del Repositorio JDBC
 
-Se añade el "driver" de PostgreSQL al ```build.gradle.kts``` ```(org.postgresql:postgresql:42.7.3).```
+Se añade el "driver" de PostgreSQL al `build.gradle.kts` `(org.postgresql:postgresql:42.7.3).`
 
-Siguiendo el Patrón Repositorio, se crea una **nueva implementación** de la interfaz ```EntrenamientoRepositorio``` llamada ```JdbcEntreneRepo.java```.
+Siguiendo el Patrón Repositorio, se crea una **nueva implementación** de la interfaz `EntrenamientoRepositorio` llamada `JdbcEntreneRepo.java`.
 
-#### 2.3.1. Conexión y Método ```obtenerTodos()```
+#### 2.3.1. Conexión y Método `obtenerTodos()`
 
-Se implementa ```obtenerTodos()``` usando JDBC (```java.sql.*```). Se utiliza un ```try-with-resources``` para gestionar la ```Connection```, ```Statement``` y ```ResultSet```, y se mapean las columnas de la BBDD de vuelta al POJO ```Entrenamiento```.
+Se implementa `obtenerTodos()` usando JDBC (`java.sql.*`). Se utiliza un `try-with-resources` para gestionar la `Connection`, `Statement` y `ResultSet`, y se mapean las columnas de la BBDD de vuelta al POJO `Entrenamiento`.
+
 ```java
 // Fichero: repository/JdbcEntreneRepo.java (extracto)
 @Override
@@ -382,7 +391,7 @@ public List<Entrenamiento> obtenerTodos() {
     try(Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
         Statement st = conn.createStatement();
         ResultSet rs = st.executeQuery(sql)) {
-        
+
         while (rs.next()) {
             Entrenamiento ent = new Entrenamiento();
             // ... (mapeo de rs.getString(...) a ent.set...) ...
@@ -409,10 +418,10 @@ El mayor desafío fue parsear los `String` de fecha del CSV (ej. "21 ago 2025") 
 @Override
 public void guardar(Entrenamiento entrenamiento) {
     String sql = "INSERT INTO entrenamientos (start_time, end_time, set_type, weight_kg, reps, exercise_title) VALUES (?, ?, ?, ?, ?, ?)";
-    
+
     try(Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
         PreparedStatement ps = conn.prepareStatement(sql)) {
-        
+
         // Se usa el 'helper' para convertir el String a un objeto Timestamp
         ps.setTimestamp(1, convertToTimestamp(entrenamiento.getStartTime()));
         ps.setTimestamp(2, convertToTimestamp(entrenamiento.getEndTime()));
@@ -421,35 +430,36 @@ public void guardar(Entrenamiento entrenamiento) {
         ps.setInt(5, entrenamiento.getReps());
         ps.setString(6, entrenamiento.getExerciseTitle());
         ps.executeUpdate();
-        
+
     } catch (SQLException e ){
         e.printStackTrace();
     }
 }
 ```
+
 ### 2.4. Migración de Datos ("Seeding")
 
 Se crea un script de un solo uso, `MigracionDatos.java`. Este script utiliza **ambos** repositorios:
 
-* Instancia `CsvEntrenamientoRepositorio` como `repoFuente`.
-* Instancia `JdbcEntreneRepo` como `repoDestino`.
-* Llama a `repoFuente.obtenerTodos()` para leer los 2106 registros del CSV a la memoria.
-* Recorre la lista con un `for-each` y llama a `repoDestino.guardar(ent)` por cada registro, insertándolos en PostgreSQL.
-* Antes de la ejecución final, se limpia la BBDD con `TRUNCATE TABLE entrenamientos;` para evitar duplicados.
+- Instancia `CsvEntrenamientoRepositorio` como `repoFuente`.
+- Instancia `JdbcEntreneRepo` como `repoDestino`.
+- Llama a `repoFuente.obtenerTodos()` para leer los 2106 registros del CSV a la memoria.
+- Recorre la lista con un `for-each` y llama a `repoDestino.guardar(ent)` por cada registro, insertándolos en PostgreSQL.
+- Antes de la ejecución final, se limpia la BBDD con `TRUNCATE TABLE entrenamientos;` para evitar duplicados.
 
 ### 2.5. Prueba Final ("El Cambiazo")
 
 La prueba final valida la arquitectura. En la capa de UI (`MainController.java`), se cambia **una sola línea**:
 
 ```java
-// Se comenta la línea de Fase 1: 
+// Se comenta la línea de Fase 1:
 // EntrenamientoRepositorio repo = new CsvEntrenamientoRepositorio();
 
-// Se activa la línea de Fase 2: 
+// Se activa la línea de Fase 2:
 EntrenamientoRepositorio repo = new JdbcEntreneRepo();
 ```
-Al ejecutar la aplicación JavaFX (gradle run), esta se conecta a la BBDD (ya poblada) y muestra el cálculo de "Peso máximo" (ej. 47.5 kg) en la ventana, demostrando que la migración ha sido un éxito y la arquitectura de 3 capas funciona.
 
+Al ejecutar la aplicación JavaFX (gradle run), esta se conecta a la BBDD (ya poblada) y muestra el cálculo de "Peso máximo" (ej. 47.5 kg) en la ventana, demostrando que la migración ha sido un éxito y la arquitectura de 3 capas funciona.
 
 ### 2.6. Interacción Dinámica y Preparación para Gráficos
 
@@ -473,28 +483,28 @@ public List<String> obtenerEjerciciosUnicos(List<Entrenamiento> entrenamientos) 
 
 Se implementa la conexión de la vista (FXML) con la lógica (Controlador), completando el flujo interactivo:
 
-* **Vista (`MainView.fxml`):** Se añade el componente `ComboBox` con el `fx:id="cmbEjercicios"`. El evento `onAction` se conecta al método `actualizarMetricas` del controlador.
-* **Refactorización del Controlador:** Las variables `entrenamientos` y `servicio` se mueven a campos de clase (`private`), asegurando que todos los métodos (incluyendo el de evento) tengan acceso a los datos de la base de datos.
+- **Vista (`MainView.fxml`):** Se añade el componente `ComboBox` con el `fx:id="cmbEjercicios"`. El evento `onAction` se conecta al método `actualizarMetricas` del controlador.
+- **Refactorización del Controlador:** Las variables `entrenamientos` y `servicio` se mueven a campos de clase (`private`), asegurando que todos los métodos (incluyendo el de evento) tengan acceso a los datos de la base de datos.
 
 ```java
 // Fichero: ui/MainController.java (extracto)
 public class MainController {
-    
+
     @FXML private ComboBox<String> cmbEjercicios;
-    
+
     // Convertidos a campos de clase para persistir los datos
     private CalcularMetricasService service;
-    private List<Entrenamiento> entrenamientos; 
+    private List<Entrenamiento> entrenamientos;
 
     @FXML
     public void initialize() {
         // ... (Carga de datos en los campos 'entrenamientos' y 'service') ...
-        
+
         // Poblar el ComboBox con ejercicios únicos
         List<String> ejerciciosUnicos = service.obtenerEjerciciosUnicos(this.entrenamientos);
         ObservableList<String> observableList = FXCollections.observableArrayList(ejerciciosUnicos);
         cmbEjercicios.setItems(observableList);
-        
+
         // Seleccionar el primer elemento y lanzar la primera actualización
         if (!observableList.isEmpty()) {
             cmbEjercicios.setValue(observableList.get(0));
@@ -513,3 +523,134 @@ public class MainController {
     }
 }
 ```
+
+## 3. Fase 3: Visualización de Datos y Gráficos (JavaFX Charts)
+
+El objetivo de esta fase es proporcionar una representación visual del progreso del usuario a lo largo del tiempo, permitiendo identificar tendencias de fuerza de un vistazo.
+
+### 3.1. Integración de JavaFX Charts
+
+Se modifica la vista (`MainView.fxml`) para incluir un `LineChart` en la zona central. Se utiliza un `BorderPane` para organizar el layout:
+
+- **Center:** El gráfico de línea (`LineChart`) que ocupa el espacio principal.
+- **Right:** Un panel lateral (`VBox`) con los controles de selección y las etiquetas de métricas clave.
+
+```xml
+<!-- Fichero: src/main/resources/MainView.fxml (extracto) -->
+<center>
+    <LineChart fx:id="chartProgreso" title="Progreso de Fuerza">
+        <xAxis>
+            <CategoryAxis fx:id="ejeXFechas" label="Fecha" side="BOTTOM" />
+        </xAxis>
+        <yAxis>
+            <NumberAxis fx:id="ejeYPeso" label="Peso (kg)" side="LEFT" />
+        </yAxis>
+    </LineChart>
+</center>
+```
+
+### 3.2. Preparación de Datos para el Gráfico (Logic)
+
+El gráfico necesita pares de datos (Fecha, Peso Máximo). Dado que un usuario puede tener múltiples sets en un mismo día, la lógica de negocio debe agrupar los entrenamientos por día y quedarse con el mejor levantamiento de esa sesión.
+
+Se añade el método `getEjercicioPorFecha` en `CalcularMetricasService`. Este método utiliza `Collectors.groupingBy` con un `TreeMap` para asegurar que las fechas se ordenen cronológicamente automáticamente.
+
+```java
+// Fichero: logic/CalcularMetricasService.java
+public Map<String, Double> getEjercicioPorFecha(List<Entrenamiento> entrenamientos, String nombreEjercicio) {
+    return entrenamientos.stream()
+            .filter(e -> e.getExerciseTitle().equalsIgnoreCase(nombreEjercicio))
+            .filter(e -> e.getStartTime() != null)
+            // Agrupa por fecha, ordena (TreeMap) y se queda con el peso máximo del día
+            .collect(Collectors.groupingBy(
+                    Entrenamiento::getStartTime,
+                    TreeMap::new,
+                    Collectors.collectingAndThen(
+                            Collectors.maxBy(Comparator.comparingDouble(Entrenamiento::getWeightKg)),
+                            opt -> opt.map(Entrenamiento::getWeightKg).orElse(0.0)
+                    )
+            ));
+}
+```
+
+### 3.3. Renderizado del Gráfico (Controller)
+
+En el `MainController`, se procesa el mapa de datos devuelto por el servicio. Se realiza un formateo de fechas para que sean legibles en el eje X (de `yyyy-MM-dd HH:mm...` a `dd/MM/yy`).
+
+```java
+// Fichero: ui/MainController.java (extracto)
+Map<String, Double> datosProgreso = service.getEjercicioPorFecha(listaFiltrada, ejercicioSeleccionado);
+XYChart.Series<String, Number> series = new XYChart.Series<>();
+series.setName(ejercicioSeleccionado);
+
+for (Map.Entry<String, Double> entry : datosProgreso.entrySet()) {
+    // ... Lógica de formateo de fecha ...
+    series.getData().add(new XYChart.Data<>(fechaBonita, peso));
+}
+
+chartProgreso.getData().clear();
+chartProgreso.getData().add(series);
+```
+
+## 4. Fase 4: Métricas Avanzadas y Filtrado
+
+Para ofrecer un análisis más profundo, se añaden capacidades de filtrado y métricas de rendimiento avanzadas como el 1RM estimado.
+
+### 4.1. Filtrado por Tipo de Set
+
+No todos los sets son iguales (calentamiento vs fallo). Se añade un `ComboBox` en la UI para filtrar por `set_type` (normal, warmup, failure, drop_set).
+
+En el controlador, se aplica un filtro dinámico antes de calcular cualquier métrica:
+
+```java
+// Fichero: ui/MainController.java
+if (tipoSetSeleccionado.equals("Todos")) {
+    listaFiltrada = this.entrenamientos;
+} else {
+    listaFiltrada = this.entrenamientos.stream()
+            .filter(e -> e.getSetType().equalsIgnoreCase(tipoSetSeleccionado))
+            .collect(Collectors.toList());
+}
+```
+
+### 4.2. Cálculo del 1RM Estimado (Fórmula de Epley)
+
+El 1RM (One Repetition Maximum) es el peso teórico máximo que un atleta puede levantar una sola vez. Se implementa la fórmula de Epley en el servicio:
+
+$$ 1RM = Peso \times (1 + \frac{Repeticiones}{30}) $$
+
+```java
+// Fichero: logic/CalcularMetricasService.java
+public double encontrar1RMEstimado(List<Entrenamiento> entrenamientos, String nombreEjercicio) {
+    return entrenamientos.stream()
+            .filter(e -> e.getExerciseTitle().equalsIgnoreCase(nombreEjercicio))
+            .mapToDouble(e -> e.getWeightKg() * (1 + (e.getReps() / 30.0)))
+            .max()
+            .orElse(0.0);
+}
+```
+
+### 4.3. Mejor Set por Volumen
+
+El volumen de carga (Peso x Repeticiones) es un indicador clave de hipertrofia. Se añade un método para encontrar el set con mayor tonelaje total.
+
+```java
+// Fichero: logic/CalcularMetricasService.java
+public String encontrarMejorSetPorVolumen(List<Entrenamiento> entrenamientos, String nombreEjercicio) {
+    return entrenamientos.stream()
+            .filter(e -> e.getExerciseTitle().equalsIgnoreCase(nombreEjercicio))
+            .max(Comparator.comparingDouble(e -> e.getWeightKg() * e.getReps()))
+            .map(e -> String.format("%.1f kg x %d reps", e.getWeightKg(), e.getReps()))
+            .orElse("N/A");
+}
+```
+
+### 4.4. Resultado Final
+
+La aplicación ahora ofrece un dashboard completo con:
+
+1.  **Gráfico de Tendencia:** Visualización clara de la progresión.
+2.  **Filtros Contextuales:** Capacidad de aislar sets efectivos de calentamientos.
+3.  **KPIs de Rendimiento:** Peso Máximo, 1RM Teórico y Mejor Volumen.
+
+Esto completa la transformación de un simple lector de CSV a una herramienta analítica robusta con persistencia en base de datos y visualización gráfica.
