@@ -13,17 +13,19 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.util.StringConverter;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class MainController {
 
     @FXML
-    private LineChart<String, Number> chartProgreso;;
+    private LineChart<String, Number> chartProgreso;
     @FXML
     private ComboBox<String> cmbEjercicios;
     @FXML
@@ -36,6 +38,8 @@ public class MainController {
     private Label lblMaxPeso;
     @FXML
     private Label lblMaxVolumenSet;
+    @FXML
+    private ComboBox<String> cmbSetType;
 
     List<Entrenamiento> entrenamientos;
     CalcularMetricasService service;
@@ -49,18 +53,46 @@ public class MainController {
         ObservableList<String> observableList = FXCollections.observableList(ejerciciosUnicos);
         cmbEjercicios.setItems(observableList);
 
+        ObservableList<String> tiposSet = FXCollections.observableArrayList(
+                "Todos", "normal", "warmup", "failure", "drop_set");
+        cmbSetType.setItems(tiposSet);
+        cmbSetType.setValue("Todos");
+
         if (!entrenamientos.isEmpty()) {
             cmbEjercicios.setValue(observableList.get(0));
             actualizarMetricas();
         }
+
+        ejeYPeso.setTickLabelFormatter(new StringConverter<Number>() {
+            @Override
+            public String toString(Number number) {
+                return String.format("%.1f kg", number.doubleValue());
+            }
+
+            @Override
+            public Number fromString(String string) {
+                return null;
+            }
+        });
     }
 
     public void actualizarMetricas() {
         String ejercicioSeleccionado = cmbEjercicios.getValue();
-        if (ejercicioSeleccionado == null)
+        String tipoSetSeleccionado = cmbSetType.getValue();
+        if (ejercicioSeleccionado == null || tipoSetSeleccionado == null || this.entrenamientos == null)
             return;
 
-        Map<String, Double> datosProgreso = service.getEjercicioPorFecha(entrenamientos, ejercicioSeleccionado);
+        List<Entrenamiento> listaFiltrada;
+
+        if (tipoSetSeleccionado.equals("Todos")) {
+            listaFiltrada = this.entrenamientos;
+        } else {
+            listaFiltrada = this.entrenamientos.stream()
+                    .filter(e -> e.getSetType().equalsIgnoreCase(tipoSetSeleccionado))
+                    .collect(Collectors.toList());
+        }
+
+        Map<String, Double> datosProgreso = service.getEjercicioPorFecha(listaFiltrada, ejercicioSeleccionado);
 
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         series.setName(ejercicioSeleccionado);
@@ -86,13 +118,13 @@ public class MainController {
         chartProgreso.getData().clear();
         chartProgreso.getData().add(series);
 
-        double maxPeso = this.service.encontrarPesoMaximo(this.entrenamientos, ejercicioSeleccionado);
+        double maxPeso = this.service.encontrarPesoMaximo(listaFiltrada, ejercicioSeleccionado);
         lblMaxPeso.setText(String.format("%.1f kg", maxPeso));
 
-        double est1RM = this.service.encontrar1RMEstimado(this.entrenamientos, ejercicioSeleccionado);
+        double est1RM = this.service.encontrar1RMEstimado(listaFiltrada, ejercicioSeleccionado);
         lblEst1RM.setText(String.format("%.1f kg", est1RM));
 
-        String maxVolumen = this.service.encontrarMejorSetPorVolumen(this.entrenamientos, ejercicioSeleccionado);
+        String maxVolumen = this.service.encontrarMejorSetPorVolumen(listaFiltrada, ejercicioSeleccionado);
         lblMaxVolumenSet.setText(maxVolumen);
     }
 }

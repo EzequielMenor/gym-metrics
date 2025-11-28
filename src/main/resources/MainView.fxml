@@ -1,44 +1,71 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.chart.CategoryAxis?>
 <?import javafx.scene.chart.LineChart?>
 <?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="778.0" prefWidth="1205.0" stylesheets="@styles.css"
-    xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+<BorderPane prefHeight="700.0" prefWidth="1000.0" stylesheets="@styles.css"
+    xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
     fx:controller="com.ezequiel.ui.MainController">
-    <ComboBox fx:id="cmbEjercicios" layoutX="468.0" layoutY="173.0" onAction="#actualizarMetricas"
-        prefHeight="25.0" prefWidth="269.0" promptText="Ejercicio" />
 
-    <Label layoutX="474.0" layoutY="75.0" styleClass="main-title" text="GYM METRICS" />
+    <top>
+        <VBox alignment="CENTER" prefHeight="80.0" BorderPane.alignment="CENTER">
+            <Label styleClass="main-title" text="GYM METRICS" />
+        </VBox>
+    </top>
 
-    <LineChart fx:id="chartProgreso" layoutX="272.0" layoutY="227.0" prefHeight="333.0"
-        prefWidth="661.0">
-        <xAxis>
-            <CategoryAxis fx:id="ejeXFechas" side="BOTTOM" />
-        </xAxis>
-        <yAxis>
-            <NumberAxis fx:id="ejeYPeso" side="LEFT" />
-        </yAxis>
-    </LineChart>
+    <right>
+        <VBox prefWidth="250.0" spacing="15.0"
+            style="-fx-background-color: #FFFFFF; -fx-border-color: #DDDDDD; -fx-border-width: 0 0 0 1;"
+            BorderPane.alignment="CENTER">
+            <padding>
+                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+            </padding>
 
-    <VBox layoutX="984.0" layoutY="243.0" prefHeight="259.0" prefWidth="198.0">
-        <children>
-            <Label prefWidth="156.0" styleClass="header-label" text="Récord de Peso Histórico" />
+            <Label styleClass="header-label" text="SELECCIÓN" />
 
-            <Label fx:id="lblMaxPeso" text="Label" />
+            <ComboBox fx:id="cmbEjercicios" maxWidth="1.7976931348623157E308"
+                onAction="#actualizarMetricas" promptText="Seleccionar Ejercicio" />
 
-            <Label styleClass="header-label" text="1RM Estimado" />
+            <ComboBox fx:id="cmbSetType" maxWidth="1.7976931348623157E308"
+                onAction="#actualizarMetricas" promptText="Tipo de Serie" />
 
-            <Label fx:id="lblEst1RM" text="Label" />
+            <Separator prefWidth="200.0">
+                <VBox.margin>
+                    <Insets top="10.0" />
+                </VBox.margin>
+            </Separator>
 
-            <Label styleClass="header-label" text="Mejor Set por Volumen" />
+            <Label styleClass="header-label" text="RÉCORD HISTÓRICO" />
+            <Label fx:id="lblMaxPeso" text="-- kg" />
 
-            <Label fx:id="lblMaxVolumenSet" text="Label" />
-        </children>
-    </VBox>
-</AnchorPane>
+            <Label styleClass="header-label" text="1RM ESTIMADO" />
+            <Label fx:id="lblEst1RM" text="-- kg" />
+
+            <Label styleClass="header-label" text="MEJOR SET (VOLUMEN)" />
+            <Label fx:id="lblMaxVolumenSet" text="-- x --" />
+
+        </VBox>
+    </right>
+
+    <center>
+        <LineChart fx:id="chartProgreso" title="Progreso de Fuerza" BorderPane.alignment="CENTER">
+            <xAxis>
+                <CategoryAxis fx:id="ejeXFechas" label="Fecha" side="BOTTOM" />
+            </xAxis>
+            <yAxis>
+                <NumberAxis fx:id="ejeYPeso" label="Peso (kg)" side="LEFT" />
+            </yAxis>
+            <padding>
+                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+            </padding>
+        </LineChart>
+    </center>
+
+</BorderPane>
