@@ -39,9 +39,9 @@ La arquitectura de este proyecto está diseñada para escalar a las siguientes c
 
 * [x] **Persistencia:** Migración completa de CSV a PostgreSQL usando JDBC.
 * [x] **Interfaz de Usuario:** Lanzador JavaFX y Conexión al controlador inicial completados.
-* [ ] **Interactividad:** Implementar un **`ComboBox`** para seleccionar ejercicios dinámicamente y actualizar la métrica.
-* [ ] **Visualización:** Añadir Gráficos (`LineChart`) de JavaFX para mostrar el progreso histórico del ejercicio seleccionado.
-* [ ] **CRUD (Escritura):** Añadir formulario para registrar actividades nuevas (ej. correr/bici), completando la funcionalidad de `GUARDAR` en el repositorio.
+* [x] **Interactividad:** Implementar un **`ComboBox`** para seleccionar ejercicios dinámicamente y actualizar la métrica.
+* [x] **Visualización:** Añadir Gráficos (`LineChart`) de JavaFX para mostrar el progreso histórico del ejercicio seleccionado.
+* [x] **CRUD (Escritura):** Añadir formulario para registrar actividades nuevas (ej. correr/bici), completando la funcionalidad de `GUARDAR` en el repositorio.
 * [ ] **(Opcional) Backend & Móvil:** Migrar la lógica de negocio a un backend con Spring Boot.
 
 ---
@@ -52,7 +52,7 @@ Para arrancar esta aplicación necesitas **Docker** (para PostgreSQL).
 
 1.  **Clonar y Configurar Docker:**
     ```bash
-    git clone [URL_DE_TU_REPOSITORIO_AQUÍ]
+    git clone https://github.com/EzequielMenor/gym-metrics.git
     cd gym-metrics
     docker-compose up -d  # Levanta el servidor PostgreSQL
     ```
