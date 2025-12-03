@@ -7,6 +7,8 @@ import com.ezequiel.repository.JdbcEntreneRepo;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
@@ -14,8 +16,10 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.stage.Stage;
 import javafx.util.StringConverter;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -42,30 +46,22 @@ public class MainController {
     @FXML
     private ComboBox<String> cmbSetType;
     @FXML
-    private TextField txtBuscarEjercicio; // Nuevo campo de texto para búsqueda
+    private TextField txtBuscarEjercicio;
 
     private List<Entrenamiento> entrenamientos;
     private CalcularMetricasService service;
-    private ObservableList<String> todosLosEjercicios; // Lista original de ejercicios
+    private ObservableList<String> todosLosEjercicios;
+    private EntrenamientoRepositorio repo;
 
     public void initialize() {
-        EntrenamientoRepositorio repo = new JdbcEntreneRepo();
-        this.entrenamientos = repo.obtenerTodos();
-        this.service = new CalcularMetricasService();
-
-        List<String> ejerciciosUnicos = service.getEjerciciosUnicos(entrenamientos);
-        todosLosEjercicios = FXCollections.observableArrayList(ejerciciosUnicos);
-        cmbEjercicios.setItems(todosLosEjercicios);
+        repo = new JdbcEntreneRepo();
+        service = new CalcularMetricasService();
+        refrescarDatos();
 
         ObservableList<String> tiposSet = FXCollections.observableArrayList(
                 "Todos", "normal", "warmup", "failure", "drop_set");
         cmbSetType.setItems(tiposSet);
         cmbSetType.setValue("Todos");
-
-        if (!entrenamientos.isEmpty()) {
-            cmbEjercicios.setValue(todosLosEjercicios.get(0));
-            actualizarMetricas();
-        }
 
         ejeYPeso.setTickLabelFormatter(new StringConverter<Number>() {
             @Override
@@ -79,7 +75,6 @@ public class MainController {
             }
         });
 
-        // Listener para el campo de búsqueda
         txtBuscarEjercicio.textProperty().addListener((observable, oldValue, newValue) -> {
             filterEjercicioList(newValue);
         });
@@ -99,7 +94,7 @@ public class MainController {
                 cmbEjercicios.setValue(null);
             }
         }
-        actualizarMetricas(); // Actualizar métricas con el ejercicio seleccionado (o nulo)
+        actualizarMetricas();
     }
 
     public void actualizarMetricas() {
@@ -144,7 +139,6 @@ public class MainController {
         chartProgreso.getData().clear();
         chartProgreso.getData().add(series);
 
-        // Añadir serie de 1RM Estimado
         Map<String, Double> datos1RMEstimado = service.get1RMEstimadoPorFecha(listaFiltrada, ejercicioSeleccionado);
         XYChart.Series<String, Number> series1RM = new XYChart.Series<>();
         series1RM.setName("1RM Estimado");
@@ -173,5 +167,27 @@ public class MainController {
 
         String maxVolumen = this.service.encontrarMejorSetPorVolumen(listaFiltrada, ejercicioSeleccionado);
         lblMaxVolumenSet.setText(maxVolumen);
+    }
+
+    public void abrirVentanaNuevaActividad() throws IOException {
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/NuevaActividadView.fxml"));
+        Scene scene = new Scene(fxmlLoader.load());
+        Stage stage = new Stage();
+        stage.setTitle("Nueva Actividad");
+        stage.setScene(scene);
+        stage.showAndWait();
+        refrescarDatos();
+    }
+
+    private void refrescarDatos() {
+        this.entrenamientos = repo.obtenerTodos();
+        List<String> ejerciciosUnicos = service.getEjerciciosUnicos(entrenamientos);
+        todosLosEjercicios = FXCollections.observableArrayList(ejerciciosUnicos);
+        cmbEjercicios.setItems(todosLosEjercicios);
+
+        if (!entrenamientos.isEmpty()) {
+            cmbEjercicios.setValue(todosLosEjercicios.get(0));
+            actualizarMetricas();
+        }
     }
 }
