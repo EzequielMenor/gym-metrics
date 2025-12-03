@@ -13,6 +13,7 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.util.StringConverter;
 
 import java.text.ParseException;
@@ -40,9 +41,12 @@ public class MainController {
     private Label lblMaxVolumenSet;
     @FXML
     private ComboBox<String> cmbSetType;
+    @FXML
+    private TextField txtBuscarEjercicio; // Nuevo campo de texto para búsqueda
 
-    List<Entrenamiento> entrenamientos;
-    CalcularMetricasService service;
+    private List<Entrenamiento> entrenamientos;
+    private CalcularMetricasService service;
+    private ObservableList<String> todosLosEjercicios; // Lista original de ejercicios
 
     public void initialize() {
         EntrenamientoRepositorio repo = new JdbcEntreneRepo();
@@ -50,8 +54,8 @@ public class MainController {
         this.service = new CalcularMetricasService();
 
         List<String> ejerciciosUnicos = service.getEjerciciosUnicos(entrenamientos);
-        ObservableList<String> observableList = FXCollections.observableList(ejerciciosUnicos);
-        cmbEjercicios.setItems(observableList);
+        todosLosEjercicios = FXCollections.observableArrayList(ejerciciosUnicos);
+        cmbEjercicios.setItems(todosLosEjercicios);
 
         ObservableList<String> tiposSet = FXCollections.observableArrayList(
                 "Todos", "normal", "warmup", "failure", "drop_set");
@@ -59,7 +63,7 @@ public class MainController {
         cmbSetType.setValue("Todos");
 
         if (!entrenamientos.isEmpty()) {
-            cmbEjercicios.setValue(observableList.get(0));
+            cmbEjercicios.setValue(todosLosEjercicios.get(0));
             actualizarMetricas();
         }
 
@@ -74,6 +78,28 @@ public class MainController {
                 return null;
             }
         });
+
+        // Listener para el campo de búsqueda
+        txtBuscarEjercicio.textProperty().addListener((observable, oldValue, newValue) -> {
+            filterEjercicioList(newValue);
+        });
+    }
+
+    private void filterEjercicioList(String searchText) {
+        if (searchText == null || searchText.isEmpty()) {
+            cmbEjercicios.setItems(todosLosEjercicios);
+        } else {
+            ObservableList<String> filteredList = todosLosEjercicios.stream()
+                    .filter(ejercicio -> ejercicio.toLowerCase().contains(searchText.toLowerCase()))
+                    .collect(Collectors.toCollection(FXCollections::observableArrayList));
+            cmbEjercicios.setItems(filteredList);
+            if (!filteredList.isEmpty()) {
+                cmbEjercicios.setValue(filteredList.get(0));
+            } else {
+                cmbEjercicios.setValue(null);
+            }
+        }
+        actualizarMetricas(); // Actualizar métricas con el ejercicio seleccionado (o nulo)
     }
 
     public void actualizarMetricas() {
@@ -117,6 +143,27 @@ public class MainController {
 
         chartProgreso.getData().clear();
         chartProgreso.getData().add(series);
+
+        // Añadir serie de 1RM Estimado
+        Map<String, Double> datos1RMEstimado = service.get1RMEstimadoPorFecha(listaFiltrada, ejercicioSeleccionado);
+        XYChart.Series<String, Number> series1RM = new XYChart.Series<>();
+        series1RM.setName("1RM Estimado");
+
+        for (Map.Entry<String, Double> entry : datos1RMEstimado.entrySet()) {
+            String fechaFea = entry.getKey();
+            Double rmEstimado = entry.getValue();
+            String fechaBonita;
+
+            try {
+                Date date = parser.parse(fechaFea);
+                fechaBonita = formatter.format(date);
+            } catch (ParseException e) {
+                fechaBonita = fechaFea;
+                e.printStackTrace();
+            }
+            series1RM.getData().add(new XYChart.Data<>(fechaBonita, rmEstimado));
+        }
+        chartProgreso.getData().add(series1RM);
 
         double maxPeso = this.service.encontrarPesoMaximo(listaFiltrada, ejercicioSeleccionado);
         lblMaxPeso.setText(String.format("%.1f kg", maxPeso));

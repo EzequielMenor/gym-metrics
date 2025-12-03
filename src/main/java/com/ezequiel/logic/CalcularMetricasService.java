@@ -59,4 +59,24 @@ public class CalcularMetricasService {
                 .orElse("N/A");
     }
 
+    /**
+     * Calcula el 1RM (One-Rep Max) estimado por fecha para un ejercicio.
+     * Utiliza la fórmula de Epley y agrupa por fecha, tomando el máximo 1RM para cada día.
+     */
+    public Map<String, Double> get1RMEstimadoPorFecha(List<Entrenamiento> entrenamientos, String nombreEjercicio) {
+        return entrenamientos.stream()
+                .filter(e -> e.getExerciseTitle().equalsIgnoreCase(nombreEjercicio))
+                .filter(e -> e.getStartTime() != null)
+                .collect(Collectors.groupingBy(
+                        Entrenamiento::getStartTime,
+                        TreeMap::new,
+                        Collectors.collectingAndThen(
+                                Collectors.maxBy(Comparator.comparingDouble(e -> e.getWeightKg() * (1 + (e.getReps() / 30.0)))),
+                                optionalEntrenamiento -> optionalEntrenamiento
+                                        .map(e -> e.getWeightKg() * (1 + (e.getReps() / 30.0)))
+                                        .orElse(0.0)
+                        )
+                ));
+    }
 }
+

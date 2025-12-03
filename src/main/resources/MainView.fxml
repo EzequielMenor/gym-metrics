@@ -7,6 +7,7 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.VBox?>
 
@@ -29,6 +30,8 @@
             </padding>
 
             <Label styleClass="header-label" text="SELECCIÓN" />
+
+            <TextField fx:id="txtBuscarEjercicio" promptText="Buscar ejercicio..." />
 
             <ComboBox fx:id="cmbEjercicios" maxWidth="1.7976931348623157E308"
                 onAction="#actualizarMetricas" promptText="Seleccionar Ejercicio" />
